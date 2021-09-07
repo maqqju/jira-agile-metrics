@@ -191,6 +191,7 @@ def config_to_options(data, cwd=None, extended=False):
             "type": "jira",
             "username": None,
             "password": None,
+            "jwt": None,
             "key": None,
             "token": None,
             "http_proxy": None,
@@ -341,6 +342,11 @@ def config_to_options(data, cwd=None, extended=False):
 
         if "type" in config["connection"]:
             options["connection"]["type"] = config["connection"]["type"]
+            
+        if "jwt" in config["connection"]:
+            options["connection"]["username"] = config["connection"[
+                "jwt"
+            ]
 
         if "username" in config["connection"]:
             options["connection"]["username"] = config["connection"][
