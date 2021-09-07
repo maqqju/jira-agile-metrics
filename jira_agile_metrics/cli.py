@@ -188,6 +188,7 @@ def get_jira_client(connection):
     url = connection["domain"]
     username = connection["username"]
     password = connection["password"]
+    jwt = connection["jwt"]
     http_proxy = connection["http_proxy"]
     https_proxy = connection["https_proxy"]
     jira_server_version_check = connection["jira_server_version_check"]
@@ -195,31 +196,51 @@ def get_jira_client(connection):
     jira_client_options = connection["jira_client_options"]
 
     logger.info("Connecting to %s", url)
+    
+    if not jwt:
+        if not username:
+            username = input("Username: ")
 
-    if not username:
-        username = input("Username: ")
+        if not password:
+            password = getpass.getpass("Password: ")
 
-    if not password:
-        password = getpass.getpass("Password: ")
+        options = {"server": url}
+        proxies = None
 
-    options = {"server": url}
-    proxies = None
+        if http_proxy or https_proxy:
+            proxies = {}
+            if http_proxy:
+                proxies["http"] = http_proxy
+            if https_proxy:
+                proxies["https"] = https_proxy
 
-    if http_proxy or https_proxy:
-        proxies = {}
-        if http_proxy:
-            proxies["http"] = http_proxy
-        if https_proxy:
-            proxies["https"] = https_proxy
+        options.update(jira_client_options)
 
-    options.update(jira_client_options)
+        return JIRA(
+            options,
+            basic_auth=(username, password),
+            proxies=proxies,
+            get_server_info=jira_server_version_check,
+        )
+    else:
+        options = {"server": url}
+        proxies = None
 
-    return JIRA(
-        options,
-        basic_auth=(username, password),
-        proxies=proxies,
-        get_server_info=jira_server_version_check,
-    )
+        if http_proxy or https_proxy:
+            proxies = {}
+            if http_proxy:
+                proxies["http"] = http_proxy
+            if https_proxy:
+                proxies["https"] = https_proxy
+
+        options.update(jira_client_options)
+
+        return JIRA(
+            options,
+            jwt=jwt,
+            proxies=proxies,
+            get_server_info=jira_server_version_check,
+        )
 
 
 def get_trello_client(connection, type_mapping):
